@@ -1,0 +1,28 @@
+name: Update Key
+
+on:
+  # This section schedules the workflow to run every day at midnight (UTC)
+  schedule:
+    - cron: '0 0 * * *'
+  # This allows you to manually run the workflow from the "Actions" tab
+  workflow_dispatch:
+
+jobs:
+  update-key-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate New Key
+        id: generate-key
+        run: echo "key_content=$(date +%s%N | sha256sum | head -c 20)" >> $GITHUB_ENV
+
+      - name: Commit and Push New Key
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          echo "${{ env.key_content }}" > keys
+          git add keys
+          git commit -m "Automated key update"
+          git push
